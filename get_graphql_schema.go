@@ -59,11 +59,11 @@ func parseHeaderOption(headers string) (http.Header, error) {
 	}
 
 	for _, h := range strings.Split(headers, ",") {
-		kv := strings.Split(h, "=")
-		if len(kv) != 2 {
+		key, value, found := strings.Cut(h, "=")
+		if !found {
 			return nil, fmt.Errorf("invalid header: %s", h)
 		}
-		header.Add(kv[0], kv[1])
+		header.Add(key, value)
 	}
 	return header, nil
 }
