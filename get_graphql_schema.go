@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/Yamashou/gqlgenc/client"
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/Yamashou/gqlgenc/introspection"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
@@ -69,10 +69,12 @@ func parseHeaderOption(headers string) (http.Header, error) {
 }
 
 func getGraphQLSchemaDocument(endpoint string, header http.Header) (*ast.SchemaDocument, error) {
-	addHeader := func(req *http.Request) {
+	addHeader := func(ctx context.Context, req *http.Request, gqlInfo *clientv2.GQLRequestInfo, res any, next clientv2.RequestInterceptorFunc) error {
 		req.Header = header
+		return next(ctx, req, gqlInfo, res)
 	}
-	gqlclient := client.NewClient(http.DefaultClient, endpoint, addHeader)
+
+	gqlclient := clientv2.NewClient(http.DefaultClient, endpoint, nil, addHeader)
 
 	var res introspection.Query
 	if err := gqlclient.Post(context.Background(), "Query", introspection.Introspection, &res, nil); err != nil {
